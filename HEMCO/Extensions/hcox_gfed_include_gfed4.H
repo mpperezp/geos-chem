@@ -45,6 +45,7 @@
 !  29 Mar 2018 - K. Travis   - Updated to latest GFED4 emission factors from
 !                           https://www.geo.vu.nl/~gwerf/GFED/GFED4/ancill/
 !                            - Added HAC, GLYX, Hg0
+!  Jan 2020    - M. Perez-Pena - Added H2 to scale CO emissions as SOAP
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -354,4 +355,13 @@ Inst%GFED4_EMFAC(34,3)=9.95E-04_hp
 Inst%GFED4_EMFAC(34,4)=9.95E-04_hp
 Inst%GFED4_EMFAC(34,5)=9.95E-04_hp
 Inst%GFED4_EMFAC(34,6)=9.95E-04_hp
+  
+! H2
+GFED4_SPEC_NAME(35)="H2"
+Inst%GFED4_EMFAC(35,1)=Inst%GFED4_EMFAC(1,1) ! SAVA
+Inst%GFED4_EMFAC(35,2)=Inst%GFED4_EMFAC(1,2) ! BORF
+Inst%GFED4_EMFAC(35,3)=Inst%GFED4_EMFAC(1,3) ! TEMP
+Inst%GFED4_EMFAC(35,4)=Inst%GFED4_EMFAC(1,4) ! DEFO
+Inst%GFED4_EMFAC(35,5)=Inst%GFED4_EMFAC(1,5) ! PEAT
+Inst%GFED4_EMFAC(35,6)=Inst%GFED4_EMFAC(1,6) ! AGRI
 !EOC
