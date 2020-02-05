@@ -74,7 +74,7 @@ MODULE HCOX_GFED_MOD
 !       Mu, M., Kasibhatla, P. S., Morton, D. C., DeFries, R. S., Jin, Y.,
 !       and van Leeuwen, T. T.: Global fire emissions and the contribution of
 !       deforestation, savanna, forest, agricultural, and peat fires
-!       (1997â~@~S2009), Atmos. Chem. Phys., 10, 11707-11735,
+!       (1997Ã¢~@~S2009), Atmos. Chem. Phys., 10, 11707-11735,
 !       doi:10.5194/acp-10-11707-2010, 2010.
 !
 ! !REVISION HISTORY:
@@ -114,8 +114,8 @@ MODULE HCOX_GFED_MOD
   ! N_SPEC  : Max. number of species
   !=================================================================
   INTEGER,           PARAMETER :: N_EMFAC = 6
-  INTEGER,           PARAMETER :: N_SPEC  = 35 ! increase from 34 (v12.5.0 default)
-                                               ! to 35 for MOH
+  INTEGER,           PARAMETER :: N_SPEC  = 36 ! increase from 34 (v12.5.0 default)
+                                               ! to 35 for MOH and 36 to include H2
 !
 ! !PRIVATE TYPES:
 !
@@ -170,7 +170,7 @@ MODULE HCOX_GFED_MOD
    REAL(sp)                       :: BCPIfrac
    REAL(sp)                       :: POG1frac
    REAL(sp)                       :: SOAPfrac
-
+   REAL(sp)                       :: H2frac
    !=================================================================
    ! DATA ARRAY POINTERS
    !
@@ -419,6 +419,9 @@ CONTAINS
              SpcArr = SpcArr * (1.0_sp - Inst%POG1frac)
           CASE ( 'SOAP' )
              SpcArr = SpcArr * Inst%SOAPfrac
+          CASE ( 'H2'   )
+             SpcArr = SpcArr * Inst%H2frac
+             
 !==============================================================================
 ! This code is required for partitioning NOx emissions directly to PAN and HNO3.
 ! We will keep it here as an option for users focusing on North American fires.
@@ -690,14 +693,30 @@ CONTAINS
     ELSE
        Inst%SOAPfrac = ValSp
     ENDIF
-
+    
+    ! Use CO emissions to create H2 emissions according to a
+    ! scale factor defined in the HEMCO_Config.rc file 
+    ! in the 'SECTION SCALE FACTORS' as well as in the 
+    ! SECTION EXTENSION SWITCHES
+    ! Added on Jan. 2020 by M.Perez-Pena
+    CALL GetExtOpt( HcoState%Config, ExtNr, 'CO to H2', &
+                     OptValSp=ValSp, FOUND=FOUND, RC=RC ) 
+     IF ( RC /= HCO_SUCCESS ) RETURN
+     IF ( .NOT. FOUND ) THEN
+        Inst%H2frac = 0.0
+     ELSE
+        Inst%H2frac = ValSp
+     ENDIF
+    
     ! Error check: OCPIfrac, BCPIfrac, and POG1frac must be between 0 and 1
     IF ( Inst%OCPIfrac < 0.0_sp .OR. Inst%OCPIfrac > 1.0_sp .OR. &
          Inst%BCPIfrac < 0.0_sp .OR. Inst%BCPIfrac > 1.0_sp .OR. &
          Inst%SOAPfrac < 0.0_sp .OR. Inst%SOAPfrac > 1.0_sp .OR. &
+         ! Include H2 as SOAP is included    
+         Inst%H2frac   < 0.0_sp .OR. Inst%H2frac   > 1.0_sp .OR. &
          Inst%POG1frac < 0.0_sp .OR. Inst%POG1frac > 1.0_sp     ) THEN
        WRITE(MSG,*) 'fractions must be between 0-1: ', &
-          Inst%OCPIfrac, Inst%BCPIfrac, Inst%POG1frac, Inst%SOAPfrac
+          Inst%OCPIfrac, Inst%BCPIfrac, Inst%POG1frac, Inst%SOAPfrac, Inst%H2frac
        CALL HCO_ERROR(HcoState%Config%Err,MSG, RC )
        RETURN
     ENDIF
@@ -775,6 +794,8 @@ CONTAINS
        WRITE(MSG,*) '   - POG1 fraction           : ', Inst%POG1frac
        CALL HCO_MSG(HcoState%Config%Err,MSG )
        WRITE(MSG,*) '   - SOAP fraction           : ', Inst%SOAPfrac
+       CALL HCO_MSG(HcoState%Config%Err,MSG )
+       WRITE(MSG,*) '   - H2 fraction             : ', Inst%H2frac
        CALL HCO_MSG(HcoState%Config%Err,MSG )
     ENDIF
 
@@ -856,6 +877,8 @@ CONTAINS
              SpcName = 'BC'
           ELSEIF ( SpcName(1:2) == 'OC' ) THEN
              SpcName = 'OC'
+          ELSEIF ( SpcName(1:2) == 'H2' ) THEN
+             SpcName = 'H2'
           ENDIF
        ENDIF
        IF ( TRIM(SpcName) == 'POG1' ) SpcName = 'OC'
@@ -872,6 +895,11 @@ CONTAINS
        ! adjust SOAP scale factor by CO scale factor (SOAP co-emitted with CO)
        IF ( TRIM(SpcName) == 'CO' ) THEN
          Inst%SOAPfrac = Inst%SOAPfrac * Inst%SpcScal(N)
+       END IF
+       
+       ! include H2 scale factor by CO scale factor (H2 co-emitted with H2)
+       IF ( TRIM(SpcName) == 'CO' ) THEN
+         Inst%H2frac = Inst%H2frac * Inst%SpcScal(N)
        END IF
 
        ! Search for matching GFED species by name
