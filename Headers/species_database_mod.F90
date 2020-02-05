@@ -5745,7 +5745,9 @@ CONTAINS
 
           CASE( 'H2' )
              FullName      = 'Molecular hydrogen'
+             ! Modified by M.Perez-Pena in Jan. 2020
              Formula       = 'H2'
+             MW_g          = 2.0_fp
              BackgroundVV  = 5.0e-07_fp
              Is_Gas        = T
              Is_Drydep     = F
