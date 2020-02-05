@@ -701,12 +701,12 @@ CONTAINS
     ! Added on Jan. 2020 by M.Perez-Pena
     CALL GetExtOpt( HcoState%Config, ExtNr, 'CO to H2', &
                      OptValSp=ValSp, FOUND=FOUND, RC=RC ) 
-     IF ( RC /= HCO_SUCCESS ) RETURN
-     IF ( .NOT. FOUND ) THEN
-        Inst%H2frac = 0.0
-     ELSE
-        Inst%H2frac = ValSp
-     ENDIF
+    IF ( RC /= HCO_SUCCESS ) RETURN
+    IF ( .NOT. FOUND ) THEN
+       Inst%H2frac = 0.0
+    ELSE
+       Inst%H2frac = ValSp
+    ENDIF
     
     ! Error check: OCPIfrac, BCPIfrac, and POG1frac must be between 0 and 1
     IF ( Inst%OCPIfrac < 0.0_sp .OR. Inst%OCPIfrac > 1.0_sp .OR. &
