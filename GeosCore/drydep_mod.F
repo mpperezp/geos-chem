@@ -79,7 +79,7 @@
 !  (14) Wesely, M. L., Parameterization of surface resistance to gaseous dry
 !        deposition in regional-scale numerical models.  Atmos. Environ., 23
 !        1293-1304, 1989.
-!  (15) Price, H., L. Jaegl�, A. Rice, P. Quay, P.C. Novelli, R. Gammon,
+!  (15) Price, H., L. Jaeglé, A. Rice, P. Quay, P.C. Novelli, R. Gammon,
 !        Global Budget of Molecular Hydrogen and its Deuterium Content:
 !        Constraints from Ground Station, Cruise, and Aircraft Observations,
 !        submitted to J. Geophys. Res., 2007.
@@ -87,7 +87,7 @@
 !        Turnipseed, A., and Jardine, K.: Efficient Atmospheric Cleansing of
 !        Oxidized Organic Trace Gases by Vegetation, Science, 330, 816-819,
 !        10.1126/science.1192534, 2010.
-!  (17) Jaeglé, L., Shah, V.,et al (2018). Nitrogen oxides emissions, chemistry,
+!  (17) JaeglÃ©, L., Shah, V.,et al (2018). Nitrogen oxides emissions, chemistry,
 !        deposition,and export over the Northeast United States during the
 !        WINTER aircraft campaign. J Geophys Res: Atmospheres, 123.
 !        https://doi.org/10.1029/2018JD029133
@@ -194,6 +194,9 @@
 !  01 Dec 2018 - H.P. Lin    - Move DEPSAV to State_Chm%DryDepSav
 !  09 May 2019 - J. Fisher   - Add special case for MENO3, ETNO3 (ocean flux)
 !  25 Jun 2019 - A. Wong     - Add CO2 effect on stomatal resistance (RIX)
+!  06 Feb 2020 - M. PerezPena- Add special tretament for H2, following ACET and
+!                              the values and constrains described by Price et al.,
+!                              2007. A fixed DVEL is set to 3.94 x 10 -2 cm / s.
 !EOP
 !------------------------------------------------------------------------------
 !BOC
@@ -252,6 +255,7 @@
       INTEGER                        :: id_MENO3, id_ETNO3
       INTEGER                        :: id_NK1
       INTEGER                        :: id_HNO3,  id_PAN,   id_ISOPND
+      INTEGER                        :: id_H2
 
       ! Arrays for Baldocchi drydep polynomial coefficients
       REAL(fp), TARGET               :: DRYCOEFF(NPOLY    )
@@ -627,6 +631,30 @@
             IF ( N == id_ALD2 ) THEN
                IF ( .not. IS_LAND( I, J, State_Met ) ) THEN
                   DVZ = 0e+0_f8
+               ENDIF
+            ENDIF
+
+            !-----------------------------------------------------------
+            ! Special treatment for H2
+            ! Test of Jan. 2020
+            !-----------------------------------------------------------
+
+            ! For H2 a fixed value of drydep is used with some distinctions
+            ! related with surface type and surface temperature, following the 
+            ! methods described by Price et al., 2007.
+            
+            IF ( N == id_H2 ) THEN
+               IF ( .not. IS_LAND( I, J, State_Met ) .OR. LSNOW(I,J) ) THEN
+                  DVZ = 0e+0_f8
+               ENDIF
+               IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .GT. 0.e+0_f8 ) THEN
+                  DVZ = 3.94e-2_f8
+               ENDIF
+               IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .LT. 0.e+0_f8 ) THEN
+                  DVZ = 1.97e-2_f8
+               ENDIF
+               IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .LT. 15.e+0_f8 ) THEN
+                  DVZ = 9.85e-3_f8
                ENDIF
             ENDIF
 
