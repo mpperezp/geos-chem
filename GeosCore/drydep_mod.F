@@ -648,13 +648,13 @@
                   DVZ = 0e+0_f8
                ENDIF
                IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .GT. 0.e+0_f8 ) THEN
-                  DVZ = 3.94e-2_f8
+                  DVZ = 3.94e-4_f8
                ENDIF
                IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .LT. 0.e+0_f8 ) THEN
-                  DVZ = 1.97e-2_f8
+                  DVZ = 1.97e-4_f8
                ENDIF
                IF ( IS_LAND( I, J, State_Met ) .AND. TEMPC .LT. 15.e+0_f8 ) THEN
-                  DVZ = 9.85e-3_f8
+                  DVZ = 9.85e-5_f8
                ENDIF
             ENDIF
 
